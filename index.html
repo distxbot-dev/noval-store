@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway - DANA & QRIS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .payment-content {
+            padding: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .payment-method {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .payment-method:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .method-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .method-header i {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #2575fc;
+        }
+
+        .method-header h2 {
+            font-size: 1.5rem;
+            color: #2575fc;
+        }
+
+        .dana-color {
+            color: #00a0e3 !important;
+        }
+
+        .qris-color {
+            color: #22bb33 !important;
+        }
+
+        .payment-details {
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-item label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .detail-item .value {
+            font-size: 1.1rem;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .copy-btn {
+            background: #2575fc;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #1c64e0;
+        }
+
+        .qris-code {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qris-code img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .qris-code img:hover {
+            transform: scale(1.02);
+        }
+
+        .instructions {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #2575fc;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #22bb33;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .payment-content {
+                flex-direction: column;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Payment Gateway</h1>
+            <p>Lakukan pembayaran dengan mudah melalui DANA atau QRIS</p>
+        </header>
+
+        <div class="payment-content">
+            <div class="payment-method">
+                <div class="method-header">
+                    <i class="fas fa-wallet dana-color"></i>
+                    <h2 class="dana-color">Payment DANA</h2>
+                </div>
+                
+                <div class="payment-details">
+                    <div class="detail-item">
+                        <label>Nomor DANA</label>
+                        <div class="value">
+                            <span id="dana-number">085718071186</span>
+                            <button class="copy-btn" onclick="copyToClipboard('085718071186', 'Nomor DANA')">
+                                <i class="fas fa-copy"></i> Salin
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <label>Atas Nama</label>
+                        <div class="value">
+                            <span>Sri</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <h3>Cara Pembayaran:</h3>
+                    <ol>
+                        <li>Buka aplikasi DANA di smartphone Anda</li>
+                        <li>Pilih menu "Kirim"</li>
+                        <li>Masukkan nomor DANA yang tertera di atas</li>
+                        <li>Masukkan jumlah nominal transfer</li>
+                        <li>Konfirmasi dan masukkan PIN DANA Anda</li>
+                        <li>Pembayaran selesai</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="payment-method">
+                <div class="method-header">
+                    <i class="fas fa-qrcode qris-color"></i>
+                    <h2 class="qris-color">QRIS Payment</h2>
+                </div>
+                
+                <div class="qris-code">
+                    <img src="https://files.catbox.moe/n3les3.jpg" alt="QRIS Code" id="qris-image">
+                </div>
+                
+                <div class="instructions">
+                    <h3>Cara Pembayaran:</h3>
+                    <ol>
+                        <li>Buka aplikasi mobile banking atau e-wallet yang mendukung QRIS</li>
+                        <li>Pilih menu "Scan QR"</li>
+                        <li>Arahkan kamera ke kode QR di atas</li>
+                        <li>Masukkan jumlah nominal transfer</li>
+                        <li>Konfirmasi dan masukkan PIN/password Anda</li>
+                        <li>Pembayaran selesai</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Payment Gateway. Untuk bantuan lebih lanjut, hubungi customer service.</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        function copyToClipboard(text, type) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            showNotification(`${type} berhasil disalin!`);
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Preload image untuk memastikan kualitas HD
+        window.addEventListener('load', function() {
+            const img = new Image();
+            img.src = document.getElementById('qris-image').src;
+        });
+    </script>
+</body>
+</html>
